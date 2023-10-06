@@ -193,105 +193,114 @@ export function App() {
   }, [filters]);
 
   return (
-    <div className="content-max-width-lg mx-auto py-50">
-      <div>
-        <h2>Filters</h2>
-        <p>
+    <>
+      <div className="content-max-width-lg mx-auto py-50 px-50">
+        <div>
+          <h2>Filters</h2>
+          <p>
+            <br />
+            <code>{condition || "Start filtering..."}</code>
+          </p>
           <br />
-          <code>{condition || "Start filtering..."}</code>
-        </p>
-        <br />
-        <div className="d-flex flex-column gap-10 align-items-stretch">
-          {filters.map((filter, idx) => {
-            return (
-              <div key={idx} className="d-flex gap-10">
-                <Select
-                  value={filter.pos}
-                  label="Position"
-                  onChange={(e) =>
-                    onFilterChange(idx, "pos", e.target.value as Filter["pos"])
-                  }
-                >
-                  <option value="all">all</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                </Select>
-                <Input
-                  label="Value"
-                  placeholder={`Value [${
-                    ["include", "exclude"].includes(filter.type) ? `ABC` : `A`
-                  }]`}
-                  value={filter.value}
-                  onChange={(e) => onFilterChange(idx, "value", e.target.value)}
-                  type="search"
-                />
-                <Select
-                  value={filter.type}
-                  label="Filter"
-                  onChange={(e) =>
-                    onFilterChange(
-                      idx,
-                      "type",
-                      e.target.value as Filter["type"]
-                    )
-                  }
-                >
-                  <option value="exclude">exclude</option>
-                  <option value="include">include</option>
-                  {filter.pos !== "all" && (
-                    <>
-                      <option value="is">is</option>
-                      <option value="not">not</option>
-                    </>
-                  )}
-                </Select>
-                <Tooltip label="Remove Filter">
-                  <IconButton
-                    label="Remove filter"
-                    size="sm"
-                    variant="danger"
-                    onClick={() =>
-                      setFilters(filters.filter((_, i) => i !== idx))
+          <div className="d-flex flex-column gap-10 align-items-stretch">
+            {filters.map((filter, idx) => {
+              return (
+                <div key={idx} className="d-flex gap-10">
+                  <Select
+                    value={filter.pos}
+                    label="Position"
+                    onChange={(e) =>
+                      onFilterChange(
+                        idx,
+                        "pos",
+                        e.target.value as Filter["pos"]
+                      )
                     }
                   >
-                    <BiMinus />
-                  </IconButton>
-                </Tooltip>
-              </div>
-            );
-          })}
-          <div className="d-flex">
-            <Tooltip label="Add Filter">
-              <IconButton
-                label="Add filter"
-                onClick={() => setFilters([...filters, { ...defaultFilter }])}
-                variant="neutral"
-              >
-                <BiPlus />
-              </IconButton>
-            </Tooltip>
+                    <option value="all">all</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </Select>
+                  <Input
+                    label="Value"
+                    placeholder={`Value [${
+                      ["include", "exclude"].includes(filter.type) ? `ABC` : `A`
+                    }]`}
+                    value={filter.value}
+                    onChange={(e) =>
+                      onFilterChange(idx, "value", e.target.value)
+                    }
+                    type="search"
+                  />
+                  <Select
+                    value={filter.type}
+                    label="Filter"
+                    onChange={(e) =>
+                      onFilterChange(
+                        idx,
+                        "type",
+                        e.target.value as Filter["type"]
+                      )
+                    }
+                  >
+                    <option value="exclude">exclude</option>
+                    <option value="include">include</option>
+                    {filter.pos !== "all" && (
+                      <>
+                        <option value="is">is</option>
+                        <option value="not">not</option>
+                      </>
+                    )}
+                  </Select>
+                  <Tooltip label="Remove Filter">
+                    <IconButton
+                      label="Remove filter"
+                      size="sm"
+                      variant="danger"
+                      onClick={() =>
+                        setFilters(filters.filter((_, i) => i !== idx))
+                      }
+                    >
+                      <BiMinus />
+                    </IconButton>
+                  </Tooltip>
+                </div>
+              );
+            })}
+            <div className="d-flex">
+              <Tooltip label="Add Filter">
+                <IconButton
+                  label="Add filter"
+                  onClick={() => setFilters([...filters, { ...defaultFilter }])}
+                  variant="neutral"
+                >
+                  <BiPlus />
+                </IconButton>
+              </Tooltip>
+            </div>
           </div>
         </div>
-      </div>
-      <div>
-        <h2>Results</h2>
-        <br />
-        <div className="d-flex flex-wrap gap-10 justify-content-start">
-          {renderData.map((word, idx) => {
-            return <div key={idx}>{word}</div>;
-          })}
-          {renderData.length === 0 && <div>No results</div>}
+        <div>
+          <h2>Results</h2>
+          <br />
+          <div className="d-flex flex-wrap gap-10 justify-content-start">
+            {renderData.map((word, idx) => {
+              return <div key={idx}>{word}</div>;
+            })}
+            {renderData.length === 0 && <div>No results</div>}
+          </div>
         </div>
+        <br />
+        {renderData.length < filteredData.length && (
+          <Button onClick={paging} autoWidth variant="neutral">
+            Load More
+          </Button>
+        )}
       </div>
-      <br />
-      {renderData.length < filteredData.length && (
-        <Button onClick={paging} autoWidth variant="neutral">
-          Load More
-        </Button>
-      )}
-    </div>
+      <footer className="text-center">Made by Yishay with ♥</footer>
+    </>
   );
 }
