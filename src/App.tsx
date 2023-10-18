@@ -6,14 +6,12 @@ import { Select } from "shoppa-ui/widgets/select";
 import { BiMinus, BiPlus } from "react-icons/bi";
 import { Tooltip } from "shoppa-ui/floating/tooltip";
 import { Filter, defaultFilter } from "./types";
-import { Alert } from "shoppa-ui/widgets/alert";
 import { filtersToCondition } from "./scripts";
 
 export function App() {
   const [data, setData] = useState<string[]>([]);
   const [renderData, setRenderData] = useState<string[]>([]);
   const [filteredData, setFilteredData] = useState<string[]>([]);
-  const [smartGuess, setSmartGuess] = useState<string>();
   const [filters, setFilters] = useState<Filter[]>([{ ...defaultFilter }]);
 
   const [condition, setCondition] = useState<string>("");
@@ -191,13 +189,6 @@ export function App() {
           </div>
         </div>
         <div>
-          {smartGuess && (
-            <>
-              <br />
-              <Alert title="Smart Guess" description="Aora" variant="primary" />
-              <br />
-            </>
-          )}
           <h2>Results ({filteredData.length})</h2>
           <br />
           <div className="d-flex flex-wrap gap-10 justify-content-start">
