@@ -1,4 +1,3 @@
-import React, { useRef } from "react";
 import { useEffect, useState } from "react";
 import { Button } from "shoppa-ui/widgets/button";
 import { IconButton } from "shoppa-ui/widgets/icon-button";
@@ -6,60 +5,15 @@ import { Input } from "shoppa-ui/widgets/input";
 import { Select } from "shoppa-ui/widgets/select";
 import { BiMinus, BiPlus } from "react-icons/bi";
 import { Tooltip } from "shoppa-ui/floating/tooltip";
-
-export const debounce = <TArgs extends any[], TReturn>(
-  func: (...args: TArgs) => TReturn,
-  wait: number
-) => {
-  let timeout: ReturnType<typeof setTimeout>;
-
-  return (...args: TArgs) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-};
-
-export type AnyObject = {
-  [key: string]: any;
-};
-
-export function deepClone(obj: AnyObject): AnyObject {
-  if (
-    obj instanceof Function ||
-    obj instanceof RegExp ||
-    obj instanceof Date ||
-    obj === null
-  ) {
-    return obj;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map((item) => deepClone(item));
-  }
-  if (Object(obj) === obj) {
-    let newObj: AnyObject = {};
-    Object.keys(obj).forEach((key) => (newObj[key] = deepClone(obj[key])));
-    return newObj;
-  }
-  return obj;
-}
-
-export type Filter = {
-  type: "exclude" | "include" | "is" | "not";
-  value: string;
-  pos: "all" | "1" | "2" | "3" | "4" | "5";
-};
-
-export const defaultFilter: Filter = {
-  type: "exclude",
-  value: "",
-  pos: "all",
-};
+import { Filter, defaultFilter } from "./types";
+import { Alert } from "shoppa-ui/widgets/alert";
+import { filtersToCondition } from "./scripts";
 
 export function App() {
   const [data, setData] = useState<string[]>([]);
   const [renderData, setRenderData] = useState<string[]>([]);
   const [filteredData, setFilteredData] = useState<string[]>([]);
-
+  const [smartGuess, setSmartGuess] = useState<string>();
   const [filters, setFilters] = useState<Filter[]>([{ ...defaultFilter }]);
 
   const [condition, setCondition] = useState<string>("");
@@ -71,7 +25,9 @@ export function App() {
       setData(json.data);
       setFilteredData(json.data);
       setRenderData(json.data.slice(0, 100));
-    } catch {}
+    } catch {
+      //
+    }
   };
 
   const paging = () => {
@@ -106,60 +62,9 @@ export function App() {
     setFilters(newFilters);
   };
 
-  const handleFilters = (filters: Filter[], data: string[]) => {
+  const handleFilters = (condition: string, data: string[]) => {
     const newData: string[] = [];
 
-    let condition = ``;
-
-    for (const filter of filters) {
-      if (!filter.value) continue;
-
-      if (filter.pos !== "all") {
-        if (["is", "not"].includes(filter.type)) {
-          condition += `word[${Number(filter.pos) - 1}]`;
-
-          if (filter.type === "is") {
-            condition += ` =`;
-          } else {
-            condition += ` !`;
-          }
-
-          condition += `== "${filter.value}" && `;
-        } else {
-          condition += `(`;
-          if (filter.type === "exclude") {
-            for (const letter of filter.value) {
-              condition += `word[${
-                Number(filter.pos) - 1
-              }] !== "${letter}" && `;
-            }
-          } else {
-            for (const letter of filter.value) {
-              condition += `word[${
-                Number(filter.pos) - 1
-              }] === "${letter}" || `;
-            }
-          }
-
-          if (filter.value.length) {
-            condition = condition.slice(0, -4);
-            condition += `) && `;
-          }
-        }
-      } else {
-        if (filter.type === "exclude") {
-          for (const letter of filter.value) {
-            condition += `!word.includes("${letter}") && `;
-          }
-        } else {
-          for (const letter of filter.value) {
-            condition += `word.includes("${letter}") && `;
-          }
-        }
-      }
-    }
-
-    condition = condition.slice(0, -4);
     setCondition(condition);
 
     if (condition.trim().length === 0) {
@@ -183,14 +88,16 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    const condition = filtersToCondition(filters);
+
     const time = setTimeout(() => {
-      handleFilters(filters, data);
+      handleFilters(condition, data);
     }, 0);
 
     return () => {
       clearTimeout(time);
     };
-  }, [filters]);
+  }, [filters, data]);
 
   return (
     <>
@@ -284,7 +191,14 @@ export function App() {
           </div>
         </div>
         <div>
-          <h2>Results</h2>
+          {smartGuess && (
+            <>
+              <br />
+              <Alert title="Smart Guess" description="Aora" variant="primary" />
+              <br />
+            </>
+          )}
+          <h2>Results ({filteredData.length})</h2>
           <br />
           <div className="d-flex flex-wrap gap-10 justify-content-start">
             {renderData.map((word, idx) => {
